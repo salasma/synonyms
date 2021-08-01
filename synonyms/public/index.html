@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .home {
+        display: flex;
+        justify-content: space-between;
+
+    }
+
+    .field {
+        margin-top: 20px;
+        padding: 10px;
+        width: 100%;
+        /* width: 30%; */
+    }
+
+    .field textarea {
+        width: 100%;
+        height: 45vh;
+        border: 2px solid gray;
+    }
+
+    .field .label {
+        font-size: larger;
+        width: 100%;
+        padding: 10px 0;
+        color: white;
+        background-color: gray;
+        border: 4px solid gray;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        background-color: cornflowerblue;
+        color: white;
+        border: none;
+        font-size: larger;
+        float: right;
+    }
+
+    .banner,
+    .header {
+        width: 100%;
+        display: flex;
+    }
+
+    .header {
+        justify-content: flex-end;
+    }
+
+    .banner {
+        border: 2px solid black;
+        /* padding: 10px; */
+        margin-bottom: 20px;
+    }
+
+
+
+    #result .field {
+        width: 33%;
+    }
+
+    .nav-btn {
+        font-size: x-large;
+        padding: 10px;
+    }
+
+    .nav-btn:hover {
+        background-color: cornflowerblue;
+        color: white;
+        cursor: pointer;
+    }
+
+    .guide {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .guide .guide_field {
+        margin-top: 20px;
+        font-size: larger;
+        width: 40vw;
+        padding: 50px;
+        min-height: 45vh;
+        border: 2px solid gray;
+        color: gray;
+    }
+
+    .hide {
+        display: none;
+    }
+</style>
+
+<body>
+    <div class="banner">
+        <div class="nav-btn" onclick="gohome()">Home</div>
+    </div>
+    <div class="header">
+        <button onclick="goToGuide()" class="btn">Guide of how to use Synonym Finder</button>
+    </div>
+    <div id="fields" class="home">
+        <div class="field">
+            <div class="label">Text Entry</div>
+            <textarea name="" id="text" placeholder="text entry"></textarea>
+            <button class="btn" onclick="go()">go</button>
+        </div>
+        <div class="field">
+            <div class="label">Problem Words</div>
+            <textarea name="" id="word" placeholder="problem word"></textarea>
+        </div>
+        <div class="field">
+            <div class="label">Known Replacements</div>
+            <textarea name="" id="replace" placeholder="Replacements 
+
+Example:
+fast->rapid
+            "></textarea>
+        </div>
+    </div>
+
+    <div id="result" class="home hide">
+        <div class="field">
+            <div class="label">Text Entry Result</div>
+            <textarea name="" id="result_text"></textarea>
+        </div>
+    </div>
+
+    <div id="guide" style="white-space: pre;" class="home hide guide">
+        <div class="guide_field">
+            Guide description
+            xxxxxxxx
+            xxxxxxxxxxxx
+            xxxxxxxxxxxx
+        </div>
+    </div>
+
+    <script>
+        function go() {
+            let text = document.getElementById('text').value;
+            const word = document.getElementById('word').value;
+            let replacements = document.getElementById('replace').value;
+            replacements = replacements.split("\n").filter((replacement) => replacement.trim().length > 0)
+
+            replacements = replacements.filter((replacement) => {
+                return (/[a-zA-Z\s]+->[a-zA-Z\s]+/.test(replacement))
+            }).map((replacement) => {
+                let words = replacement.split('->');
+                return [words[0].trim(), words[1].trim()];
+            })
+            for (let replacement of replacements) {
+                let regex = new RegExp(replacement[0], "g")
+                text = text.replace(regex, replacement[1]);
+            }
+            // document.getElementById('result_text').textContent = text
+            // console.log(replacements)
+            if (word !== '') {
+                fetch(`${word}/synonym`).then((response) => response.json())
+                    .then((data) => {
+                        if (!data.synonym) {
+                            alert(`No synonym was found for ${word}`)
+                            return;
+                        } else {
+                            let regex = new RegExp(data.original, "g")
+                            text = text.replace(regex, data.synonym);
+                            document.getElementById('result_text').textContent = text
+                        }
+                    })
+            } else {
+                document.getElementById('result_text').textContent = text
+            }
+           
+            document.getElementById('result').classList.remove('hide');
+            document.getElementById('fields').classList.add('hide')
+
+        }
+
+        function gohome() {
+            document.getElementById('result').classList.add('hide');
+            document.getElementById('guide').classList.add('hide')
+            document.getElementById('fields').classList.remove('hide')
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('text').value = '';
+            document.getElementById('word').value = '';
+            document.getElementById('replace').value = '';
+        }
+
+        function goToGuide() {
+            document.getElementById('result').classList.add('hide');
+            document.getElementById('fields').classList.add('hide')
+            document.getElementById('guide').classList.remove('hide')
+            resetForm();
+        }
+    </script>
+</body>
+
+</html>
